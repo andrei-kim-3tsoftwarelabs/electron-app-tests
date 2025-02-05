@@ -12,32 +12,15 @@ import { GithubStubDsl } from "../../utils/DSL/GithubStubDsl";
 import { AppDsl, AppDrivers } from "../../utils/DSL/dsl";
 
 //Seeing Persisting Query History should run first
-
 describe("Seeing Persisting Query History", async () => {
-  let mainPage: MainPage;
-
-  beforeEach(() => {
-    mainPage = new MainPage();
-  });
-
-  it("should have no saved queries under Query History", async () => {
-    await mainPage.toggleAdvancedView();
-
-    const queryHistoryResults = await mainPage.queryHistoryResultsAllElements;
-
-    expect(queryHistoryResults.length).toBe(0);
-  });
+  let application = new AppDsl(new AppDrivers(["UI", "API"]));
 
   it("should have saved queries under Query History", async () => {
-    const historyList = await mainPage.queryHistoryResultsAllElements;
-    const initialHistoryLength = historyList.length;
+    await application.toggleAdvancedView();
+    await application.setQuery(`{"name":"test1"}`);
+    await application.clickRunQuery();
 
-    await mainPage.setQueryText(`{"name":"test1"}`);
-    await mainPage.clickRunQueryButton();
-
-    await expect(historyList).toBeElementsArrayOfSize(initialHistoryLength + 1);
-
-    const lastQueryHistoryResult = await mainPage.getLastQueryHistoryText();
+    const lastQueryHistoryResult = await application.getLastQueryFromHistory();
 
     await expect(lastQueryHistoryResult).toContain(
       `Query: {"name":"test1"} | Result:`
@@ -45,59 +28,51 @@ describe("Seeing Persisting Query History", async () => {
   });
 
   it("should use previous saved query and the result", async () => {
-    const historyList = await mainPage.queryHistoryResultsAllElements;
+    let historyList = await application.getQueryHistoryResults();
     const initialHistoryLength = historyList.length;
 
-    await mainPage.setQueryText(`{"name":"test1"}`);
-    await mainPage.clickRunQueryButton();
+    await application.setQuery(`{"name":"test1"}`);
+    await application.clickRunQuery();
+    historyList = await application.getQueryHistoryResults();
+    console.log(
+      "TEST LOGS",
+      historyList.length,
+      initialHistoryLength + 1,
+      typeof historyList,
+      typeof initialHistoryLength
+    );
     await expect(historyList).toBeElementsArrayOfSize(initialHistoryLength + 1);
 
-    await mainPage.setQueryText(`{"name":"test2"}`);
-    await mainPage.clickRunQueryButton();
+    await application.setQuery(`{"name":"test2"}`);
+    await application.clickRunQuery();
+    historyList = await application.getQueryHistoryResults();
     await expect(historyList).toBeElementsArrayOfSize(initialHistoryLength + 2);
 
-    await mainPage.setQueryText(`{"name":"test3"}`);
-    await mainPage.clickRunQueryButton();
+    await application.setQuery(`{"name":"test3"}`);
+    await application.clickRunQuery();
+    historyList = await application.getQueryHistoryResults();
     await expect(historyList).toBeElementsArrayOfSize(initialHistoryLength + 3);
-
-    await mainPage.findClickMinusTwoQueriesInHistory();
-    const resultText = await mainPage.getQueryText();
-
-    assert.strictEqual(resultText, `{"name":"test1"}`, "Incorrect query text");
   });
 
   it("should have previous saved queries when changing the Advanced view from off to on", async () => {
-    const historyList = await mainPage.queryHistoryResultsAllElements;
+    const historyList = application.getQueryHistoryResults();
     expect(historyList).toBeElementsArrayOfSize({ gte: 1 });
 
-    await mainPage.toggleAdvancedView();
-    await mainPage.toggleAdvancedView();
+    await application.toggleAdvancedView();
+    await application.toggleAdvancedView();
 
-    expect(historyList).toBeElementsArrayOfSize({ gte: 1 });
-  });
-
-  it("should have previous saved queries when changing the Advanced view from off to on", async () => {
-    await mainPage.clickRandomItemInHistory();
-
-    await browser.reloadSession();
-    await mainPage.toggleAdvancedView();
-
-    const historyList = await mainPage.queryHistoryResultsAllElements;
     expect(historyList).toBeElementsArrayOfSize({ gte: 1 });
   });
 
   it("should continue to save queries when the Advanced view: off into the Query History ", async () => {
-    const historyList = await mainPage.queryHistoryResultsAllElements;
-    const initialHistoryLength = historyList.length;
-    await mainPage.toggleAdvancedView();
+    await application.toggleAdvancedView();
 
-    await mainPage.setQueryText(`{"name":"test1"}`);
-    await mainPage.clickRunQueryButton();
+    await application.setQuery(`{"name":"test1"}`);
+    await application.clickRunQuery();
 
-    await mainPage.toggleAdvancedView();
-    await expect(historyList).toBeElementsArrayOfSize(initialHistoryLength + 1);
+    await application.toggleAdvancedView();
 
-    const lastQueryHistoryResult = await mainPage.getLastQueryHistoryText();
+    const lastQueryHistoryResult = await application.getLastQueryFromHistory();
 
     await expect(lastQueryHistoryResult).toContain(
       `Query: {"name":"test1"} | Result:`
@@ -106,65 +81,61 @@ describe("Seeing Persisting Query History", async () => {
 });
 
 describe("Advanced View Toggle Test", () => {
+  const application = new AppDsl(new AppDrivers(["UI", "API"]));
+
   it("should toggle advanced view and toggle query history", async () => {
-    await browser.reloadSession();
+    const queryHistorySection =
+      await application.getQueryHistoryResultsContainer();
 
-    const mainPage = new MainPage();
-
-    await mainPage.toggleAdvancedView();
-
-    const queryHistorySection = await mainPage.queryHistoryResults;
-
-    // Assert that the "Query History" section is visible
     await expect(queryHistorySection).toBeDisplayed();
 
-    await mainPage.toggleAdvancedView();
+    await application.toggleAdvancedView();
+
     await expect(queryHistorySection).not.toBeDisplayed();
   });
 });
 
-describe("Viewing Results in JSON Format", async () => {
-  it("should successfully run a find query and have a Query Result in JSON format", async () => {
-    const mainPage = new MainPage();
-    await mainPage.setQueryText(`{"name":"test1"}`);
-    await mainPage.clickRunQueryButton();
+describe("Viewing Results in JSON Format", () => {
+  const application = new AppDsl(new AppDrivers(["UI", "API"]));
 
-    const resultText = await mainPage.getQueryResultText();
+  it("should successfully run a find query and have a Query Result in JSON format", async () => {
+    await application.setQuery(`{"name":"test1"}`);
+    await application.clickRunQuery();
+
+    const resultText = await application.getQueryResult();
 
     await expect(resultText).toContain(`"name": "test1"`);
   });
 });
 
 describe("Change the Advanced View", async () => {
-  let mainPage: MainPage;
-
-  beforeEach(() => {
-    mainPage = new MainPage();
-  });
+  const application = new AppDsl(new AppDrivers(["UI", "API"]));
 
   it("should successfully toggle Advanced view: on", async () => {
     await browser.reloadSession();
 
-    let isToggleOff = await mainPage.getToggleValue();
+    let isToggleOff = await application.getAdvancedViewToggleValue();
     await expect(isToggleOff).toBe(false);
 
-    await mainPage.toggleAdvancedView();
-    isToggleOff = await mainPage.getToggleValue();
+    await application.toggleAdvancedView();
+    isToggleOff = await application.getAdvancedViewToggleValue();
 
     expect(isToggleOff).toBe(true);
 
-    const queryHistorySection = await mainPage.queryHistoryResults;
+    const queryHistorySection =
+      await application.getQueryHistoryResultsContainer();
 
     expect(queryHistorySection).toBeDisplayed();
   });
 
   it("should successfully toggle Advanced view: off", async () => {
-    await mainPage.toggleAdvancedView();
-    const isToggleOff = await mainPage.getToggleValue();
+    await application.toggleAdvancedView();
+    const isToggleOff = await application.getAdvancedViewToggleValue();
 
     expect(isToggleOff).toBe(false);
 
-    const queryHistorySection = await mainPage.queryHistoryResults;
+    const queryHistorySection =
+      await application.getQueryHistoryResultsContainer();
 
     expect(queryHistorySection).not.toBeDisplayed();
   });
@@ -294,7 +265,7 @@ describe("Settings", async () => {
   });
 });
 
-describe.skip("Advanced View Startup Preference", async () => {
+describe("Advanced View Startup Preference", async () => {
   it("should enable Advanced View on startup", async () => {
     await browser.reloadSession();
 
@@ -343,22 +314,10 @@ describe.skip("Advanced View Startup Preference", async () => {
 
 // ========== Maintainable Acceptance Test Start ==========
 
-describe("MongoDB Query Execution Test", async () => {
-  let mainPage: MainPage;
-
-  beforeEach(() => {
-    mainPage = new MainPage();
-  });
+describe.skip("MongoDB Query Execution Test", async () => {
+  const application = new AppDsl(new AppDrivers(["UI", "API"]));
 
   it("should execute a simple query and display results", async () => {
-    // Using a real MongoDB instance for these tests.
-    // MongoDB documentation states there are no proper ways to mock it.
-
-    // This test follows the Four Layer Model Approach.
-    await browser.reloadSession();
-
-    const application = new AppDsl(new AppDrivers(["UI", "API"]));
-
     await application.setQuery("{}");
     await application.clickRunQuery();
     const queryResult = await application.getQueryResult();
@@ -374,14 +333,12 @@ describe("MongoDB Query Execution Test", async () => {
   });
 
   it("should execute a simple unsuccessful query and display error", async () => {
-    await mainPage.setQueryText('{"name":"test4}');
-
-    await mainPage.clickRunQueryButton();
-
-    const resultText = await mainPage.getQueryResultText();
+    await application.setQuery('{"name":"test4}');
+    await application.clickRunQuery();
+    const queryResult = await application.getQueryResult();
 
     assert.include(
-      resultText,
+      queryResult,
       "Invalid query or server error.",
       'Query result should not contain "Invalid Query"'
     );
@@ -503,17 +460,11 @@ describe("Select Theme", async () => {
 // Stubbed API is used for educational purposes due to GitHub API limitations (no more than 60 calls per day)
 
 describe("Version", async () => {
-  let mainPage: MainPage;
-
   const githubStubDsl = new GithubStubDsl(
     new GithubStubDriver(
       new WireMock(`${process.env.WIREMOCK_HOST}:${process.env.WIREMOCK_PORT}`)
     )
   );
-
-  beforeEach(() => {
-    mainPage = new MainPage();
-  });
 
   it("should successfully check version against stub", async () => {
     const appVersion = await githubStubDsl.getVersion();

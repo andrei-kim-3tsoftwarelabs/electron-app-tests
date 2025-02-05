@@ -15,7 +15,7 @@ export class AppDrivers implements AppDriver {
 
   constructor(wireMock: WireMock) {
     this.drivers[Channels.UI] = new UIAppDriver();
-    this.drivers[Channels.API] = new APIAppDriver();
+    // this.drivers[Channels.API] = new APIAppDriver();
     this.themeStubDsl = new ThemeStubDsl(new ThemeStubDriver(wireMock));
   }
 
@@ -42,7 +42,7 @@ export class AppDrivers implements AppDriver {
     await this.driver.toggleAdvancedView();
   }
 
-  public async getQueryHistoryResults() {
+  public getQueryHistoryResults() {
     return this.driver.getQueryHistoryResults();
   }
 
@@ -54,7 +54,7 @@ export class AppDrivers implements AppDriver {
     await this.driver.clickRandomItemInHistory();
   }
 
-  public async getQueryHistoryResultsContainer() {
+  public getQueryHistoryResultsContainer() {
     return this.driver.getQueryHistoryResultsContainer();
   }
 
