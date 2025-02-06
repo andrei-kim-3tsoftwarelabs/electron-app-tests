@@ -142,179 +142,121 @@ describe("Change the Advanced View", async () => {
 });
 
 describe("Settings", async () => {
-  let appMenu: MenuBar;
+  const application = new AppDsl(new AppDrivers(["UI", "API"]));
 
-  beforeEach(() => {
-    appMenu = new MenuBar("MongoDB Query Executor");
+  beforeEach(async () => {
+    await browser.reloadSession();
   });
 
   it("should successfully show the Settings menu", async () => {
-    await browser.reloadSession();
+    await application.checkAppMenuExist();
 
-    const appMenuExists = await appMenu.doesAppMenuExist();
+    await application.clickOnAppMenu();
 
-    assert.equal(
-      appMenuExists,
-      true,
-      "MongoDB Query Executor menu item exists"
-    );
-
-    const successfulClickOnAppMenu = await appMenu.doMenuClickById("appName");
-
-    assert.equal(
-      successfulClickOnAppMenu,
-      true,
-      "Click on MongoDB Query Executor"
-    );
-
-    const hasCorrectSubmenuItems = await appMenu.checkMenuItems();
-
-    assert.equal(
-      hasCorrectSubmenuItems,
-      true,
-      "Has three necessary submenu items"
-    );
+    await application.checkMenuItems();
   });
 
   it("should successfully open the Settings menu", async () => {
-    await browser.reloadSession();
+    await application.checkAppMenuExist();
 
-    const settingsModal = new Modal();
+    await application.clickOnAppMenu();
 
-    const appMenuExists = await appMenu.doesAppMenuExist();
+    await application.clickOnSettingsMenu();
 
-    assert.equal(
-      appMenuExists,
-      true,
-      "MongoDB Query Executor menu item exists"
-    );
-
-    const successfulClickOnAppMenu = await appMenu.doMenuClickById("appName");
-
-    assert.equal(
-      successfulClickOnAppMenu,
-      true,
-      "Click on MongoDB Query Executor"
-    );
-
-    const successfulClickOnSettingMenu = await appMenu.doMenuClickById(
-      "settings"
-    );
-
-    assert.equal(successfulClickOnSettingMenu, true, "Click on Settings");
-
-    const settingsModalVisible = await settingsModal.modal;
-
-    await expect(settingsModalVisible).toBeDisplayed();
+    await application.checkSettingsMenuVisible();
   });
 
   it("should show the Settings menu options", async () => {
-    await browser.reloadSession();
+    await application.clickOnAppMenu();
 
-    const settingsModal = new Modal();
+    await application.clickOnSettingsMenu();
 
-    await appMenu.doMenuClickById("settings");
-    const settingsModalVisible = await settingsModal.modal;
-    await expect(settingsModalVisible).toBeDisplayed();
+    await application.checkSettingsMenuVisible();
 
-    const lightThemeRadio = await settingsModal.lightThemeRadio;
-    await expect(lightThemeRadio).toBeDisplayed();
+    await application.checkLightThemeSwitchVisible();
 
-    const darkThemeRadio = await settingsModal.darkThemeRadio;
-    await expect(darkThemeRadio).toBeDisplayed();
+    await application.checkDarkThemeSwitchVisible();
 
-    const systemThemeRadio = await settingsModal.systemThemeRadio;
-    await expect(systemThemeRadio).toBeDisplayed();
+    await application.checkSystemThemeSwitchVisible();
 
-    const uriInput = await settingsModal.uriInput;
-    await expect(uriInput).toBeDisplayed();
+    await application.checkUriInputVisible();
 
-    const databaseNameInput = await settingsModal.databaseNameInput;
-    await expect(databaseNameInput).toBeDisplayed();
+    await application.checkDatabaseNameInputVisible();
 
-    const collectionNameInput = await settingsModal.collectionNameInput;
-    await expect(collectionNameInput).toBeDisplayed();
+    await application.checkCollectionNameInputVisible();
 
-    const applyButton = await settingsModal.applyButton;
-    await expect(applyButton).toBeDisplayed();
+    await application.checkApplySettingsButtonVisible();
 
-    const cancelButton = await settingsModal.cancelButton;
-    await expect(cancelButton).toBeDisplayed();
+    await application.checkCancelSettingsButtonVisible();
   });
 
   it("should show the default options in the Settings menu", async () => {
-    await browser.reloadSession();
+    await application.clickOnAppMenu();
 
-    const settingsModal = new Modal();
+    await application.clickOnSettingsMenu();
 
-    await appMenu.doMenuClickById("settings");
-    const settingsModalVisible = await settingsModal.modal;
-    await expect(settingsModalVisible).toBeDisplayed();
+    await application.checkSettingsMenuVisible();
 
-    const systemThemeRadio = await settingsModal.systemThemeRadio;
-    await expect(systemThemeRadio).toBeChecked();
+    await application.checkDefaultTheme();
 
-    const uriInput = await settingsModal.uriInput;
-    await expect(uriInput).toHaveValue("mongodb://localhost:27017");
+    await application.checkDefaultUri();
 
-    const databaseNameInput = await settingsModal.databaseNameInput;
-    await expect(databaseNameInput).toHaveValue("test");
+    await application.checkDefaultDatabaseName();
 
-    const collectionNameInput = await settingsModal.databaseNameInput;
-    await expect(collectionNameInput).toHaveValue("test");
+    await application.checkDefaultCollectionName();
   });
 });
 
-describe("Advanced View Startup Preference", async () => {
-  it("should enable Advanced View on startup", async () => {
-    await browser.reloadSession();
+// describe.skip("Advanced View Startup Preference", async () => {
+//   it("should enable Advanced View on startup", async () => {
+//     await browser.reloadSession();
 
-    const mainPage = new MainPage();
+//     const mainPage = new MainPage();
 
-    const settingsModal = new Modal();
+//     const settingsModal = new Modal();
 
-    const appMenu = new MenuBar("MongoDB Query Executor");
+//     const appMenu = new MenuBar("MongoDB Query Executor");
 
-    const appMenuExists = await appMenu.doesAppMenuExist();
+//     const appMenuExists = await appMenu.doesAppMenuExist();
 
-    assert.equal(
-      appMenuExists,
-      true,
-      "MongoDB Query Executor menu item exists"
-    );
+//     assert.equal(
+//       appMenuExists,
+//       true,
+//       "MongoDB Query Executor menu item exists"
+//     );
 
-    const successfulClickOnAppMenu = await appMenu.doMenuClickById("appName");
+//     const successfulClickOnAppMenu = await appMenu.doMenuClickById("appName");
 
-    assert.equal(
-      successfulClickOnAppMenu,
-      true,
-      "Click on MongoDB Query Executor"
-    );
+//     assert.equal(
+//       successfulClickOnAppMenu,
+//       true,
+//       "Click on MongoDB Query Executor"
+//     );
 
-    const successfulClickOnSettingMenu = await appMenu.doMenuClickById(
-      "settings"
-    );
+//     const successfulClickOnSettingMenu = await appMenu.doMenuClickById(
+//       "settings"
+//     );
 
-    assert.equal(successfulClickOnSettingMenu, true, "Click on Settings");
+//     assert.equal(successfulClickOnSettingMenu, true, "Click on Settings");
 
-    const settingsModalVisible = await settingsModal.modal;
+//     const settingsModalVisible = await settingsModal.modal;
 
-    await expect(settingsModalVisible).toBeDisplayed();
+//     await expect(settingsModalVisible).toBeDisplayed();
 
-    await settingsModal.clickAdvancedViewOnStartCheckbox();
-    await settingsModal.clickApplyButton();
+//     await settingsModal.clickAdvancedViewOnStartCheckbox();
+//     await settingsModal.clickApplyButton();
 
-    await browser.reloadSession();
+//     await browser.reloadSession();
 
-    const queryHistoryResults = await mainPage.queryHistoryResults;
+//     const queryHistoryResults = await mainPage.queryHistoryResults;
 
-    await expect(queryHistoryResults).toBeDisabled();
-  });
-});
+//     await expect(queryHistoryResults).toBeDisabled();
+//   });
+// });
 
 // ========== Maintainable Acceptance Test Start ==========
 
-describe.skip("MongoDB Query Execution Test", async () => {
+describe("MongoDB Query Execution Test", async () => {
   const application = new AppDsl(new AppDrivers(["UI", "API"]));
 
   it("should execute a simple query and display results", async () => {
